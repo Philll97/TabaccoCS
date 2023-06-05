@@ -1,0 +1,61 @@
+# TobaccoCS
+
+## Health Check
+### Command
+{
+    "command":"health_check", 
+    "ackn":"request"
+}
+### Response
+{
+    "command":"health_check",
+    "failed_count": 0 // anzahl nicht erreichter Tubes
+    "failes_tubes": [] // array mit tube nummern
+    "ackn":"acknowledge"
+}
+
+## Check if empty
+### Command
+{
+    "command":"check_if_empty", 
+    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "ackn":"request"
+}
+### Response
+{
+    "command":"check_if_empty",
+    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "error":"no error", // Fehlerbeschreibung
+    "ackn":"acknowledge"
+}
+
+## release content
+### Command
+{
+    "command":"release_content", 
+    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "ackn":"request"
+}
+### Response
+{
+    "command":"release_content",
+    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "success": true, // erfolgreiche Ausgabe
+    "error":"no error", // Fehlerbeschreibung
+    "ackn":"acknowledge"
+}
+
+## I2C adresse setzen
+### Command
+{
+    "command":"set_i2c_address", 
+    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "ackn":"request"
+}
+### Response
+{
+    "command":"set_i2c_address",
+    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "error":"no error", // Fehlerbeschreibung
+    "ackn":"acknowledge"
+}
