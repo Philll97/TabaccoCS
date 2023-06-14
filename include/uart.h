@@ -10,9 +10,12 @@ namespace uart
     extern HardwareSerial SerialPort;
     extern communication_states state;
     extern peripherie_reply reply;
+    extern bool ready;
+    extern long timestamp;
 
     void init();
-    void send(peripherie_command command);    
+    void send(peripherie_command command);
+    bool timeout_reached();
 }
 
 #endif

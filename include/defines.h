@@ -20,6 +20,7 @@
 #define UART_RX_PIN     9
 #define UART_TX_PIN     10
 #define UART_RX_TIMEOUT 3
+#define UART_MAX_RETRY  5
 
 // MQTT Settings
 #define MQTT_BROKER     "192.168.1.129"

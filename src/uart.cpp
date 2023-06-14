@@ -3,12 +3,16 @@
 HardwareSerial uart::SerialPort(1); // use UART1
 communication_states uart::state;
 peripherie_reply uart::reply;
+bool uart::ready;
+long uart::timestamp;
 
 void uart::init()
 {
     SerialPort.begin(UART_BAUDRATE, UART_CONFIG, UART_RX_PIN, UART_TX_PIN);
     SerialPort.setRxTimeout(UART_RX_TIMEOUT);
     state = communication_states::idle;
+    ready = true;
+    timestamp = 0;
 }
 
 void onReceiveFunction(void) {
@@ -33,6 +37,7 @@ void onReceiveFunction(void) {
             uart::reply.data1 = data_in[3];
             uart::reply.data2 = data_in[4];
             uart::state = communication_states::new_msg;
+
         }
         else
         {
@@ -71,8 +76,18 @@ void uart::send(peripherie_command command)
     Serial.println(data_out[5], HEX);
     
     SerialPort.flush(); // wait Serial FIFO to be empty and then spend almost no time processing it
-    SerialPort.setRxFIFOFull(UART_MSG_SIZE); // testing diferent result based on FIFO Full setup
-    SerialPort.onReceive(onReceiveFunction, false);
+    SerialPort.setRxFIFOFull(UART_MSG_SIZE);
+    SerialPort.onReceive(onReceiveFunction, true);
     
     SerialPort.write(data_out, UART_MSG_SIZE);
+    timestamp = millis();
+}
+
+bool uart::timeout_reached()
+{
+    long now = millis();
+    if(now > timestamp + UART_RX_TIMEOUT * 1000)
+        return true;
+    
+    return false;
 }

@@ -10,7 +10,7 @@
 #include "mqtt.h"
 #include "uart.h"
 #include "timer.h"
-
+#include  "release_content.h"
 
 machine_tasks current_task;
 release_content_sub_tasks release_content_sub_task; 
@@ -19,20 +19,70 @@ check_if_empty_sub_tasks check_if_empty_sub_task;
 peripherie_command current_command;
 
 uint8_t health_check_cnt;
+void loop2(void* pvParameters)
+{
+  uint8_t task_id = *((uint8_t*)pvParameters);
+  while(1)
+  {
+    Serial.print("Loop: ");
+    Serial.println(task_id); 
+    delay(1000);
+  }
+}
+
+uint8_t task_id;
+uint8_t task1_id = 0;
+uint8_t tube_nr = 1;
+std::vector<uint8_t> task_ids;
+ReleaseContent newReleas = ReleaseContent(tube_nr);
+int cnt = 0;
 
 void setup() 
 {
     Serial.begin(115200);
     uart::init();
     delay(1000);
-    ethernet::init();
-    mqtt::init(&ethernet::client, MQTT_BROKER);
+    //ethernet::init();
+    //mqtt::init(&ethernet::client, MQTT_BROKER);
 
     current_task = machine_tasks::idle;
+
+    delay(5000);
+    Serial.println("Try start process");
+    newReleas.start();
 }
  
 void loop() 
 {
+  // --------- UART ------------
+  if(uart::state == communication_states::idle)
+  {
+    if(newReleas.check_uart_send_flag())
+    {
+      uart::send(newReleas.get_uart_command());
+      newReleas.reset_uart_send_flag();
+      uart::state = communication_states::waiting_for_msg;
+    }
+  }
+  else if(uart::state == communication_states::waiting_for_msg)
+  {
+    if(uart::timeout_reached())
+    {
+      peripherie_reply reply;
+      reply.state = peripherie_states::message_error;
+      newReleas.set_uart_recieve_flag(reply);
+      uart::state = communication_states::idle;
+    }
+  }
+  else if(uart::state == communication_states::new_msg)
+  {
+    if(uart::reply.address == tube_nr)
+    {
+      newReleas.set_uart_recieve_flag(uart::reply);
+    }
+    uart::state = communication_states::idle;
+  }
+  /*
     mqtt::loop();
 
     if(timer::check() && uart::state == communication_states::idle && mqtt::state == communication_states::idle)
@@ -531,5 +581,5 @@ void loop()
     {
       uart::state = communication_states::idle;
       mqtt::state = communication_states::waiting_for_msg;
-    }
+    }*/
 }
