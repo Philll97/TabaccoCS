@@ -43,6 +43,11 @@ void Task::stop()
     this->log("Task deleted");
 }
 
+xTaskHandle Task::get_handle()
+{
+	return this->h_handle;
+}
+
 void Task::log(std::string msg)
 {
 	Serial.println(msg.c_str());

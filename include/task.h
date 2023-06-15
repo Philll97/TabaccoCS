@@ -16,11 +16,12 @@ class Task
         static void run_task(void* data);
         
     public:
-        Task(std::string task_name, uint16_t stack_size = 1000, uint8_t priority = 0, BaseType_t core_id = 0);
+        Task(std::string task_name, uint16_t stack_size = 10000, uint8_t priority = 10, BaseType_t core_id = 0);
         ~Task();
 
         void start();//(void* task_data = nullptr);
         void stop();
+        xTaskHandle get_handle();
 
         virtual void perform_command();//(void* data) = 0;
         virtual void log(std::string msg);

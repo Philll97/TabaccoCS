@@ -11,13 +11,12 @@ class ReleaseContent : public Task
         uint8_t ui8_tube_nr;
         std::string str_status;
         std::string str_error;
-        bool b_uart_recieve_flag;
         bool b_uart_send_flag;
         peripherie_reply s_cur_reply;
         peripherie_command s_cur_command;
 
     public:
-        ReleaseContent(uint8_t tube_nr, uint16_t stack_size = 1000, uint8_t priority = 0, BaseType_t core_id = 0);
+        ReleaseContent(uint8_t tube_nr, uint16_t stack_size = 10000, uint8_t priority = 10, BaseType_t core_id = 0);
         ~ReleaseContent();
 
         void perform_command();

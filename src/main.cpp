@@ -32,7 +32,7 @@ void loop2(void* pvParameters)
 
 uint8_t task_id;
 uint8_t task1_id = 0;
-uint8_t tube_nr = 1;
+uint8_t tube_nr = 39;
 std::vector<uint8_t> task_ids;
 ReleaseContent newReleas = ReleaseContent(tube_nr);
 int cnt = 0;
@@ -76,11 +76,18 @@ void loop()
   }
   else if(uart::state == communication_states::new_msg)
   {
-    if(uart::reply.address == tube_nr)
+    if(uart::reply.address == 0x46)
     {
       newReleas.set_uart_recieve_flag(uart::reply);
     }
     uart::state = communication_states::idle;
+  }
+  else if(uart::state == communication_states::error)
+  {
+    peripherie_reply reply;
+      reply.state = peripherie_states::message_error;
+      newReleas.set_uart_recieve_flag(reply);
+      uart::state = communication_states::idle;
   }
   /*
     mqtt::loop();

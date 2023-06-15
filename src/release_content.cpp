@@ -23,17 +23,18 @@ void ReleaseContent::perform_command()
     this->log("put tube in standby");
     this->str_status = "check_if_ready";
     this->str_error = "no_error";
-    while(state < 50)
+    while(1)
     {
         if(failed_com_count == UART_MAX_RETRY)
         {
             this->str_error = "com_failed";
             this->log("Communication error");
-            state = 100;
+            return;
         }
         switch(state)
         {
             case 0: // turn off output B
+            {
                 this->log("turn off output B");
 
                 // setup command
@@ -44,23 +45,23 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::output_off && this->s_cur_reply.state == peripherie_states::ready)
                 {
                     failed_com_count = 0;
                     state = 1;
+                    
                 }
                 else
                     failed_com_count++;
 
                 break;
-
+            }
             case 1: // turn on output A
+            {
                 this->log("turn on output A");
 
                 // setup command
@@ -71,10 +72,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::output_on && this->s_cur_reply.state == peripherie_states::ready)
@@ -86,7 +85,9 @@ void ReleaseContent::perform_command()
                     failed_com_count++;
 
                 break;
+            }
             case 2: // check if ready
+            {
                 this->log("check if ready");
 
                 // setup command
@@ -97,10 +98,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::read_digital_inputs && this->s_cur_reply.state == peripherie_states::ready)
@@ -110,7 +109,7 @@ void ReleaseContent::perform_command()
                     {
                         if(this->s_cur_reply.data2 == 0) // position reset still ongoing pause for 1 Second
                         {
-                            //delay(500);
+                            delay(500);
                         }
                         else
                         {
@@ -123,14 +122,16 @@ void ReleaseContent::perform_command()
                     {
                         this->str_error = "tube_empty";
                         this->log("Tube empty");
-                        state = 100;
+                        state = 30;
                     }
                 }
                 else
                     failed_com_count++;
 
                 break;
+            }
             case 10: // turn off output A
+            {
                 this->log("turn off output A");
 
                 // setup command
@@ -141,10 +142,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::output_off && this->s_cur_reply.state == peripherie_states::ready)
@@ -156,7 +155,9 @@ void ReleaseContent::perform_command()
                     failed_com_count++;
 
                 break;
+            }
             case 11: // turn on output B
+            {
                 this->log("turn on output B");
 
                 // setup command
@@ -167,10 +168,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::output_on && this->s_cur_reply.state == peripherie_states::ready)
@@ -183,7 +182,9 @@ void ReleaseContent::perform_command()
                     failed_com_count++;
 
                 break;
- /*           case 12: // check if finished
+            }
+            case 12: // check if finished
+            {
                 this->log("check if finished");
 
                 // setup command
@@ -194,10 +195,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::read_digital_inputs && this->s_cur_reply.state == peripherie_states::ready)
@@ -217,8 +216,10 @@ void ReleaseContent::perform_command()
                 else
                     failed_com_count++;
 
-                break;*/
+                break;
+            }
             case 20: // turn off output B
+            {
                 this->log("turn off output B");
 
                 // setup command
@@ -229,10 +230,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::output_off && this->s_cur_reply.state == peripherie_states::ready)
@@ -244,7 +243,9 @@ void ReleaseContent::perform_command()
                     failed_com_count++;
 
                 break;
+            }
             case 21: // turn on output A
+            {
                 this->log("turn on output A");
 
                 // setup command
@@ -255,10 +256,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::output_on && this->s_cur_reply.state == peripherie_states::ready)
@@ -270,7 +269,9 @@ void ReleaseContent::perform_command()
                     failed_com_count++;
 
                 break;
-     /*       case 22: // check if emptied
+            }
+            case 22: // check if emptied
+            {
                 this->log("check if emptied");
 
                 // setup command
@@ -281,10 +282,8 @@ void ReleaseContent::perform_command()
 
                 //set send flag
                 this->b_uart_send_flag = true;
-                // reset recieve flag   
-                this->b_uart_recieve_flag = true;
-                // wait for message
-                while(this->b_uart_recieve_flag){delay(10);};
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
 
                 // check if reply is good
                 if(this->s_cur_reply.command_type == peripherie_command_types::read_digital_inputs && this->s_cur_reply.state == peripherie_states::ready)
@@ -295,13 +294,42 @@ void ReleaseContent::perform_command()
                         this->str_error = "tube_emptied";
                         this->log("Tube emptied");
                     }
-
-                    state = 100;
+                    
+                    state = 30;
                 }
                 else
                     failed_com_count++;
 
-                break;*/
+                break;
+            }
+            case 30: // turn off output A
+            {
+                this->log("turn off output A");
+
+                // setup command
+                this->s_cur_command.command_type = peripherie_command_types::output_off;
+                this->s_cur_command.data1 = 1;
+                this->s_cur_command.data2 = 0;
+                this->s_cur_command.data3 = 0;
+
+                //set send flag
+                this->b_uart_send_flag = true;
+                // suspend task till reply arrives
+                vTaskSuspend(NULL);
+
+                // check if reply is good
+                if(this->s_cur_reply.command_type == peripherie_command_types::output_off && this->s_cur_reply.state == peripherie_states::ready)
+                {
+                    failed_com_count = 0;
+                    this->log("Finished");
+                    this->str_status = "finished";
+                    return;
+                }
+                else
+                    failed_com_count++;
+
+                break;
+            }
         }
     }
 }
@@ -323,8 +351,8 @@ uint8_t ReleaseContent::get_tube_nr()
 
 void ReleaseContent::set_uart_recieve_flag(peripherie_reply msg)
 {
-    this->b_uart_recieve_flag = false;
     this->s_cur_reply = msg;
+    vTaskResume(this->get_handle());
 }
 
 bool ReleaseContent::check_uart_send_flag()

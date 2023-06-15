@@ -41,13 +41,13 @@ void onReceiveFunction(void) {
         }
         else
         {
-            Serial.print("Communication Error: Wrong checksum");
+            Serial.println("Communication Error: Wrong checksum");
             uart::state = communication_states::error;
         }
     }
     else
     {
-        Serial.print("Communication Error: Wrong message size");
+        Serial.println("Communication Error: Wrong message size");
         uart::state = communication_states::error;
     }
 
