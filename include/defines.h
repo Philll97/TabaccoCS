@@ -19,11 +19,11 @@
 #define UART_CONFIG     SERIAL_8N1
 #define UART_RX_PIN     9
 #define UART_TX_PIN     10
-#define UART_RX_TIMEOUT 3
-#define UART_MAX_RETRY  5
+#define UART_RX_TIMEOUT 1
+#define UART_MAX_RETRY  2
 
 // MQTT Settings
-#define MQTT_BROKER     "192.168.1.129"
+#define MQTT_BROKER     "192.168.0.154"
 #define MQTT_PORT       1883
 #define MQTT_SUB_TOPIC  "tabacco/input"
 #define MQTT_PUB_TOPIC  "tabacco/output"
@@ -36,18 +36,20 @@
 #define JSON_VAL_SET_I2C_ADDRESS    "set_i2c_address"
 
 #define JSON_KEY_TUBE_NR            "tube_nr"
+#define JSON_KEY_TUBE_NRS           "tube_nrs"
 
 #define JSON_KEY_ACKN               "ackn"
 #define JSON_VAL_REQ                "request"
 #define JSON_VAL_ACKN               "acknowledged"
 
 #define JSON_KEY_ERROR              "error"
-#define JSON_VAL_NO_ERROR           "no error"
-#define JSON_VAL_TUBE_NR_WRONG      "wrong tube number"
-#define JSON_VAL_COMMAND_ERR        "invalid command"
-#define JSON_VAL_UART_ERR           "uart communication failed"
-#define JSON_VAL_MQTT_PARSE_FAILED  "mqtt message could not be parsed"
-#define JSON_VAL_TUBE_EMPTY         "tube empty"
+#define JSON_VAL_NO_ERROR           "no_error"
+#define JSON_VAL_TUBE_NR_WRONG      "wrong_tube_number"
+#define JSON_VAL_COMMAND_ERR        "invalid_command"
+#define JSON_VAL_UART_ERR           "uart_communication_failed"
+#define JSON_VAL_MQTT_PARSE_FAILED  "mqtt_message_could_not_be_parsed"
+#define JSON_VAL_TUBE_EMPTY         "tube_empty"
+#define JSON_VAL_TUBE_EMPTIED       "tube_emptied"
 
 #define JSON_KEY_FAILED_COUNT       "failed_count"
 #define JSON_KEY_FAILED_TUBES       "failed_tubes"

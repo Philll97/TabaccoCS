@@ -4,90 +4,106 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <MQTT.h>
+#include <memory>
  
 #include "defines.h"
 #include "ethernet.h"
 #include "mqtt.h"
 #include "uart.h"
 #include "timer.h"
-#include  "release_content.h"
+#include "command.h"
 
-machine_tasks current_task;
-release_content_sub_tasks release_content_sub_task; 
-release_content_sub_sub_tasks release_content_sub_sub_task; 
-check_if_empty_sub_tasks check_if_empty_sub_task;
-peripherie_command current_command;
-
-uint8_t health_check_cnt;
-void loop2(void* pvParameters)
-{
-  uint8_t task_id = *((uint8_t*)pvParameters);
-  while(1)
-  {
-    Serial.print("Loop: ");
-    Serial.println(task_id); 
-    delay(1000);
-  }
-}
-
-uint8_t task_id;
-uint8_t task1_id = 0;
-uint8_t tube_nr = 39;
-std::vector<uint8_t> task_ids;
-ReleaseContent newReleas = ReleaseContent(tube_nr);
-int cnt = 0;
+std::vector<Command> v_commands;
 
 void setup() 
 {
     Serial.begin(115200);
     uart::init();
     delay(1000);
-    //ethernet::init();
-    //mqtt::init(&ethernet::client, MQTT_BROKER);
-
-    current_task = machine_tasks::idle;
-
+    ethernet::init();
+    mqtt::init(&ethernet::client, MQTT_BROKER);
+    //mqtt::state = communication_states::error;
     delay(5000);
-    Serial.println("Try start process");
-    newReleas.start();
+
+    /*JSONVar tube_nr;
+    tube_nr[JSON_KEY_TUBE_NRS][0] = 0;
+    tube_nr[JSON_KEY_TUBE_NRS][1] = 1;
+    tube_nr[JSON_KEY_TUBE_NRS][2] = 2;
+    tube_nr[JSON_KEY_TUBE_NRS][3] = 0;
+
+    Command command = Command(machine_command_types::release_content, tube_nr);
+    v_commands.push_back(command);*/
+
+
 }
  
 void loop() 
 {
+  // --------- Command --------
+  if(!v_commands.empty())
+  {
+    if(v_commands.front().check_if_all_tasks_finished())
+    {
+      Serial.println("All finished");
+      v_commands.front().send_reply();
+      v_commands.erase(v_commands.begin());
+    }
+  }
   // --------- UART ------------
-  if(uart::state == communication_states::idle)
+  if(!v_commands.empty())
   {
-    if(newReleas.check_uart_send_flag())
+    if(uart::state == communication_states::idle)
     {
-      uart::send(newReleas.get_uart_command());
-      newReleas.reset_uart_send_flag();
-      uart::state = communication_states::waiting_for_msg;
+      v_commands.front().send_next_uart_msg();
+    }
+    else if(uart::state == communication_states::waiting_for_msg)
+    {
+      if(uart::timeout_reached())
+      {
+        v_commands.front().set_uart_recieve_flag(uart::cur_sender, true);
+      }
+    }
+    else if(uart::state == communication_states::new_msg)
+    {
+      v_commands.front().set_uart_recieve_flag(uart::cur_sender, false);
+    }
+    else if(uart::state == communication_states::error)
+    {
+      v_commands.front().set_uart_recieve_flag(uart::cur_sender, true);
     }
   }
-  else if(uart::state == communication_states::waiting_for_msg)
+  
+  // --------- MQTT ------------
+  mqtt::loop();
+  if(mqtt::state == communication_states::new_msg)
   {
-    if(uart::timeout_reached())
+    Serial.println("Mqtt message recieved");
+    if(mqtt::message.hasPropertyEqual(JSON_KEY_ACKN, JSON_VAL_REQ))
     {
-      peripherie_reply reply;
-      reply.state = peripherie_states::message_error;
-      newReleas.set_uart_recieve_flag(reply);
-      uart::state = communication_states::idle;
+      if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_RELEASE_CONTENT))
+      {
+        Serial.println("Command: release content");
+        if(mqtt::message.hasOwnProperty(JSON_KEY_TUBE_NRS))
+        {
+          mqtt::send_acknowledge();
+
+          Command release_content = Command(machine_command_types::release_content, mqtt::message);
+          v_commands.push_back(release_content);
+        }
+      }
+      else
+      {
+        Serial.print("Wrong command: ");
+        Serial.println(mqtt::message[JSON_KEY_COMMAND]);
+        mqtt::reply = JSON.parse("");
+        mqtt::reply = nullptr;
+        mqtt::reply = mqtt::message;
+        mqtt::reply[JSON_KEY_ERROR] = JSON_VAL_COMMAND_ERR;
+        mqtt::reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
+        mqtt::send_reply();
+      }
     }
-  }
-  else if(uart::state == communication_states::new_msg)
-  {
-    if(uart::reply.address == 0x46)
-    {
-      newReleas.set_uart_recieve_flag(uart::reply);
-    }
-    uart::state = communication_states::idle;
-  }
-  else if(uart::state == communication_states::error)
-  {
-    peripherie_reply reply;
-      reply.state = peripherie_states::message_error;
-      newReleas.set_uart_recieve_flag(reply);
-      uart::state = communication_states::idle;
+    mqtt::state = communication_states::idle;
   }
   /*
     mqtt::loop();

@@ -8,7 +8,7 @@ JSONVar mqtt::reply;
 
 void recieved(String &topic, String &payload)
 {
-    if(mqtt::state == communication_states::waiting_for_msg)
+    if(mqtt::state == communication_states::idle)
     {
         Serial.println("incoming: " + topic + " - " + payload);
         JSONVar msg = JSON.parse(payload);

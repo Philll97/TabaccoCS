@@ -7,6 +7,7 @@ ReleaseContent::ReleaseContent(uint8_t tube_nr, uint16_t stack_size, uint8_t pri
     this->str_status = "Task created";
     this->ui8_tube_nr = tube_nr;
     this->log(str_status.c_str());
+    this->checked_after_finished = false;
 }
 
 ReleaseContent::~ReleaseContent()
@@ -342,6 +343,11 @@ machine_command_types ReleaseContent::get_command()
 std::string ReleaseContent::get_status()
 {
     return this->str_status;
+}
+
+std::string ReleaseContent::get_error()
+{
+    return this->str_error;
 }
 
 uint8_t ReleaseContent::get_tube_nr()

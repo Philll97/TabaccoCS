@@ -5,6 +5,7 @@ communication_states uart::state;
 peripherie_reply uart::reply;
 bool uart::ready;
 long uart::timestamp;
+std::shared_ptr<Task> uart::cur_sender;
 
 void uart::init()
 {
@@ -63,17 +64,6 @@ void uart::send(peripherie_command command)
     data_out[3] = command.data2;
     data_out[4] = command.data3;
     data_out[5] = data_out[0] + data_out[1] + data_out[2] + data_out[3] + data_out[4];
-    Serial.print(data_out[0], HEX);
-    Serial.print(" | ");
-    Serial.print(data_out[1], HEX);
-    Serial.print(" | ");
-    Serial.print(data_out[2], HEX);
-    Serial.print(" | ");
-    Serial.print(data_out[3], HEX);
-    Serial.print(" | ");
-    Serial.print(data_out[4], HEX);
-    Serial.print(" | ");
-    Serial.println(data_out[5], HEX);
     
     SerialPort.flush(); // wait Serial FIFO to be empty and then spend almost no time processing it
     SerialPort.setRxFIFOFull(UART_MSG_SIZE);

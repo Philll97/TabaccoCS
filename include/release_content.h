@@ -16,13 +16,17 @@ class ReleaseContent : public Task
         peripherie_command s_cur_command;
 
     public:
-        ReleaseContent(uint8_t tube_nr, uint16_t stack_size = 10000, uint8_t priority = 10, BaseType_t core_id = 0);
+        bool checked_after_finished;
+
+        ReleaseContent(uint8_t tube_nr, uint16_t stack_size = 5000, uint8_t priority = 10, BaseType_t core_id = 0);
         ~ReleaseContent();
 
         void perform_command();
         machine_command_types get_command();
         std::string get_status();
+        std::string get_error();
         uint8_t get_tube_nr();
+
         void set_uart_recieve_flag(peripherie_reply msg);
         bool check_uart_send_flag();
         void reset_uart_send_flag();

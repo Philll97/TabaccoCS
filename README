@@ -33,15 +33,35 @@
 ### Command
 {
     "command":"release_content", 
-    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "tube_nr": [0,1], // tubes nummeriert von 1 - 39 für das Teststeup
     "ackn":"request"
 }
 ### Response
 {
     "command":"release_content",
-    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
-    "success": true, // erfolgreiche Ausgabe
-    "error":"no error", // Fehlerbeschreibung
+    "tube_nrs": [
+        {
+            "tube_nr": 0,
+            "success": true,
+            "error": "no_error"
+        },
+        {
+            "tube_nr": 1,
+            "success": true,
+            "error": "tube_emptied"
+        },
+        {
+            "tube_nr": 2,
+            "success": false,
+            "error": "tube_empty"
+        },
+        {
+            "tube_nr": 3,
+            "success": false,
+            "error": "communication_failed"
+        }
+
+    ],
     "ackn":"acknowledge"
 }
 
