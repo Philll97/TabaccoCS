@@ -9,8 +9,16 @@
 ### Response
 {
     "command":"health_check",
-    "failed_count": 0 // anzahl nicht erreichter Tubes
-    "failes_tubes": [] // array mit tube nummern
+    "failes_tubes": [
+        {
+            "tube_nr": 0,
+            "error": "com_failed"
+        },
+        {
+            "tube_nr": 1,
+            "error": "not_configured"
+        }
+    ],
     "ackn":"acknowledge"
 }
 
@@ -18,14 +26,27 @@
 ### Command
 {
     "command":"check_if_empty", 
-    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "tube_nrs": [0,1], // tubes nummeriert von 1 - 39 für das Teststeup
     "ackn":"request"
 }
 ### Response
 {
     "command":"check_if_empty",
-    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
-    "error":"no error", // Fehlerbeschreibung
+    "tube_nrs": [
+        {
+            "tube_nr": 0,
+            "error": "no_error"
+        },
+        {
+            "tube_nr": 2,
+            "error": "tube_empty"
+        },
+        {
+            "tube_nr": 3,
+            "error": "communication_failed"
+        }
+
+    ],
     "ackn":"acknowledge"
 }
 

@@ -6,6 +6,9 @@
 #include "defines.h"
 #include "task.h"
 #include "release_content.h"
+#include "com_check.h"
+#include "check_if_empty.h"
+#include "set_i2c_address.h"
 #include "uart.h"
 #include "mqtt.h"
 
@@ -25,7 +28,6 @@ class Command
         ~Command();
 
         bool check_if_all_tasks_finished();
-        xTaskHandle get_task_with_send_flag();
         bool send_next_uart_msg();
         bool set_uart_recieve_flag(std::shared_ptr<Task> cur_sender, bool error);
         void send_reply();

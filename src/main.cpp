@@ -22,54 +22,34 @@ void setup()
     delay(1000);
     ethernet::init();
     mqtt::init(&ethernet::client, MQTT_BROKER);
-    //mqtt::state = communication_states::error;
     delay(5000);
-
-    /*JSONVar tube_nr;
-    tube_nr[JSON_KEY_TUBE_NRS][0] = 0;
-    tube_nr[JSON_KEY_TUBE_NRS][1] = 1;
-    tube_nr[JSON_KEY_TUBE_NRS][2] = 2;
-    tube_nr[JSON_KEY_TUBE_NRS][3] = 0;
-
-    Command command = Command(machine_command_types::release_content, tube_nr);
-    v_commands.push_back(command);*/
 
 
 }
  
 void loop() 
 {
-  // --------- Command --------
   if(!v_commands.empty())
   {
+    // --------- Command --------
     if(v_commands.front().check_if_all_tasks_finished())
     {
-      Serial.println("All finished");
       v_commands.front().send_reply();
       v_commands.erase(v_commands.begin());
     }
-  }
-  // --------- UART ------------
-  if(!v_commands.empty())
-  {
+
+    // --------- UART ------------
     if(uart::state == communication_states::idle)
     {
       v_commands.front().send_next_uart_msg();
     }
-    else if(uart::state == communication_states::waiting_for_msg)
+    else if((uart::state == communication_states::waiting_for_msg && uart::timeout_reached()) || uart::state == communication_states::error)
     {
-      if(uart::timeout_reached())
-      {
-        v_commands.front().set_uart_recieve_flag(uart::cur_sender, true);
-      }
+      v_commands.front().set_uart_recieve_flag(uart::cur_sender, true);
     }
     else if(uart::state == communication_states::new_msg)
     {
       v_commands.front().set_uart_recieve_flag(uart::cur_sender, false);
-    }
-    else if(uart::state == communication_states::error)
-    {
-      v_commands.front().set_uart_recieve_flag(uart::cur_sender, true);
     }
   }
   
@@ -80,15 +60,45 @@ void loop()
     Serial.println("Mqtt message recieved");
     if(mqtt::message.hasPropertyEqual(JSON_KEY_ACKN, JSON_VAL_REQ))
     {
-      if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_RELEASE_CONTENT))
+      if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_SET_I2C_ADDRESS))
+      {
+        Serial.println("Command: set I2C address");
+        if(mqtt::message.hasOwnProperty(JSON_KEY_TUBE_NR))
+        {
+          mqtt::send_acknowledge();
+          
+          Command new_command = Command(machine_command_types::set_i2c_address, mqtt::message);
+          v_commands.push_back(new_command);
+        }
+      }
+      else if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_HEALTH_CHECK))
+      {
+        Serial.println("Command: health check");
+        mqtt::send_acknowledge();
+        
+        Command new_command = Command(machine_command_types::health_check, mqtt::message);
+        v_commands.push_back(new_command);
+      }
+      else if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_CHECK_IF_EMPTY))
+      {
+        Serial.println("Command: check if empty");
+        if(mqtt::message.hasOwnProperty(JSON_KEY_TUBE_NRS))
+        {
+          mqtt::send_acknowledge();
+
+          Command new_command = Command(machine_command_types::check_if_emtpy, mqtt::message);
+          v_commands.push_back(new_command);
+        }
+      }
+      else if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_RELEASE_CONTENT))
       {
         Serial.println("Command: release content");
         if(mqtt::message.hasOwnProperty(JSON_KEY_TUBE_NRS))
         {
           mqtt::send_acknowledge();
 
-          Command release_content = Command(machine_command_types::release_content, mqtt::message);
-          v_commands.push_back(release_content);
+          Command new_command = Command(machine_command_types::release_content, mqtt::message);
+          v_commands.push_back(new_command);
         }
       }
       else
@@ -273,7 +283,7 @@ void loop()
           {
             uint8_t tube_nr = (uint8_t) mqtt::message[JSON_KEY_TUBE_NR];
 
-            if(tube_nr > 0 && tube_nr <= MAX_TUBES)
+            if(tube_nr > 0 && tube_nr <= TUBE_CNT)
             {
               Serial.print("Tube-Nr.: ");
               Serial.println(std::to_string(tube_nr).c_str());
@@ -306,7 +316,7 @@ void loop()
           {
             uint8_t tube_nr = (uint8_t) mqtt::message[JSON_KEY_TUBE_NR];
 
-            if(tube_nr > 0 && tube_nr <= MAX_TUBES)
+            if(tube_nr > 0 && tube_nr <= TUBE_CNT)
             {
               Serial.print("Tube-Nr.: ");
               Serial.println(std::to_string(tube_nr).c_str());
@@ -334,7 +344,7 @@ void loop()
           {
             uint8_t tube_nr = (uint8_t) mqtt::message[JSON_KEY_TUBE_NR];
 
-            if(tube_nr > 0 && tube_nr <= MAX_TUBES)
+            if(tube_nr > 0 && tube_nr <= TUBE_CNT)
             {
               Serial.print("Tube-Nr.: ");
               Serial.println(std::to_string(tube_nr).c_str());
@@ -386,7 +396,7 @@ void loop()
           }
           health_check_cnt++;
 
-          if(health_check_cnt > MAX_TUBES)
+          if(health_check_cnt > TUBE_CNT)
           {
             mqtt::send_reply();
             current_task = machine_tasks::idle;
@@ -588,7 +598,7 @@ void loop()
               mqtt::reply[JSON_KEY_FAILED_COUNT] = ((int) mqtt::reply[JSON_KEY_FAILED_COUNT]) + 1;           
               health_check_cnt++;
 
-              if(health_check_cnt > MAX_TUBES)
+              if(health_check_cnt > TUBE_CNT)
               {
                 mqtt::send_reply();
                 current_task = machine_tasks::idle;

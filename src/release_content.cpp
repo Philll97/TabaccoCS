@@ -7,7 +7,6 @@ ReleaseContent::ReleaseContent(uint8_t tube_nr, uint16_t stack_size, uint8_t pri
     this->str_status = "Task created";
     this->ui8_tube_nr = tube_nr;
     this->log(str_status.c_str());
-    this->checked_after_finished = false;
 }
 
 ReleaseContent::~ReleaseContent()
@@ -29,6 +28,7 @@ void ReleaseContent::perform_command()
         if(failed_com_count == UART_MAX_RETRY)
         {
             this->str_error = "com_failed";
+            this->str_status = "finished";
             this->log("Communication error");
             return;
         }

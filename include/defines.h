@@ -9,7 +9,7 @@
 #define MACHINE_TYPE    "TABACCO"
 #define MACHINE_ID      1
 
-#define MAX_TUBES       39
+#define TUBE_CNT        39
 #define I2C_START_ADDR  0x20
 #define I2C_CONFIG_ADDR 0x11
 

@@ -1,11 +1,11 @@
-#ifndef RELEASE_CONTENT_HEADER
-#define RELEASE_CONTENT_HEADER
+#ifndef SET_I2C_ADDRESS_HEADER
+#define SET_I2C_ADDRESS_HEADER
 
 #include <Arduino.h>
 #include "defines.h"
 #include "task.h"
 
-class ReleaseContent : public Task
+class SetI2CAddress : public Task
 {
     private:
         uint8_t ui8_tube_nr;
@@ -16,8 +16,9 @@ class ReleaseContent : public Task
         peripherie_command s_cur_command;
 
     public:
-        ReleaseContent(uint8_t tube_nr, uint16_t stack_size = 5000, uint8_t priority = 10, BaseType_t core_id = 0);
-        ~ReleaseContent();
+
+        SetI2CAddress(uint8_t tube_nr, uint16_t stack_size = 5000, uint8_t priority = 10, BaseType_t core_id = 0);
+        ~SetI2CAddress();
 
         void perform_command();
         machine_command_types get_command();

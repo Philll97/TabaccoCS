@@ -1,11 +1,11 @@
-#ifndef RELEASE_CONTENT_HEADER
-#define RELEASE_CONTENT_HEADER
+#ifndef CHECK_IF_EMPTY_HEADER
+#define CHECK_IF_EMPTY_HEADER
 
 #include <Arduino.h>
 #include "defines.h"
 #include "task.h"
 
-class ReleaseContent : public Task
+class CheckIfEmpty : public Task
 {
     private:
         uint8_t ui8_tube_nr;
@@ -16,8 +16,9 @@ class ReleaseContent : public Task
         peripherie_command s_cur_command;
 
     public:
-        ReleaseContent(uint8_t tube_nr, uint16_t stack_size = 5000, uint8_t priority = 10, BaseType_t core_id = 0);
-        ~ReleaseContent();
+
+        CheckIfEmpty(uint8_t tube_nr, uint16_t stack_size = 5000, uint8_t priority = 10, BaseType_t core_id = 0);
+        ~CheckIfEmpty();
 
         void perform_command();
         machine_command_types get_command();
