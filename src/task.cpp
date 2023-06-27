@@ -1,6 +1,5 @@
 #include "task.h"
 
-
 Task::Task(std::string task_name, uint16_t stack_size, uint8_t priority, BaseType_t core_id)
 {
 	str_task_name = task_name;

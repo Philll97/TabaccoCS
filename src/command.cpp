@@ -1,6 +1,6 @@
 #include "command.h"
 
-Command::Command(machine_command_types command, JSONVar mqtt_msg)
+Command::Command(modul_command_types command, JSONVar mqtt_msg)
 {
     this->e_command = command;
     this->js_mqtt_command = mqtt_msg;
@@ -20,7 +20,7 @@ void Command::setup_tasks()
 {
     switch(this->e_command)
     {
-        case machine_command_types::set_i2c_address:
+        case modul_command_types::set_i2c_address:
         {
             this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_HEALTH_CHECK;
             this->js_mqtt_reply[JSON_KEY_TUBE_NR] = (uint8_t) this->js_mqtt_command[JSON_KEY_TUBE_NR];
@@ -41,7 +41,7 @@ void Command::setup_tasks()
             }
             break;
         }
-        case machine_command_types::health_check:
+        case modul_command_types::health_check:
         {
             this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_HEALTH_CHECK;
             this->js_mqtt_reply[JSON_KEY_FAILED_TUBES] = JSON.parse("[]");
@@ -56,7 +56,7 @@ void Command::setup_tasks()
             }
             break;
         }
-        case machine_command_types::check_if_emtpy:
+        case modul_command_types::check_if_emtpy:
         {
             this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_CHECK_IF_EMPTY;
             this->js_mqtt_reply[JSON_KEY_TUBE_NRS] = JSON.parse("[]");
@@ -92,7 +92,7 @@ void Command::setup_tasks()
             }
             break;
         }
-        case machine_command_types::release_content:
+        case modul_command_types::release_content:
         {
             this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_RELEASE_CONTENT;
             this->js_mqtt_reply[JSON_KEY_TUBE_NRS] = JSON.parse("[]");
@@ -142,10 +142,10 @@ bool Command::check_if_all_tasks_finished()
     bool finished = true;
     switch(this->e_command)
     {
-        case machine_command_types::set_i2c_address:
+        case modul_command_types::set_i2c_address:
         {
             std::shared_ptr<SetI2CAddress> cur_task = std::static_pointer_cast<SetI2CAddress>(this->v_tasks.front());
-            if(cur_task->get_status() == "finished")
+            if(cur_task->get_status() == TASK_STATE_FINISHED)
             {      
                 this->js_mqtt_reply[JSON_KEY_ERROR] = cur_task->get_error().c_str();
 
@@ -156,14 +156,14 @@ bool Command::check_if_all_tasks_finished()
                 finished = false;
             break;
         }
-        case machine_command_types::health_check:
+        case modul_command_types::health_check:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             { 
                 std::shared_ptr<ComCheck> com_check = std::static_pointer_cast<ComCheck>(this->v_tasks.at(i));
-                if(com_check->get_status() == "finished")
+                if(com_check->get_status() == TASK_STATE_FINISHED)
                 {    
-                    if(com_check->get_error() != "no_error")
+                    if(com_check->get_error() != JSON_VAL_NO_ERROR)
                     {                
                         JSONVar task_reply;
                         task_reply[JSON_KEY_TUBE_NR] = com_check->get_tube_nr();                        
@@ -184,12 +184,12 @@ bool Command::check_if_all_tasks_finished()
             }
             break;
         }
-        case machine_command_types::check_if_emtpy:
+        case modul_command_types::check_if_emtpy:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             { 
                 std::shared_ptr<CheckIfEmpty> check_if_empty = std::static_pointer_cast<CheckIfEmpty>(this->v_tasks.at(i));
-                if(check_if_empty->get_status() == "finished")
+                if(check_if_empty->get_status() == TASK_STATE_FINISHED)
                 {                    
                     JSONVar task_reply;
                     task_reply[JSON_KEY_TUBE_NR] = check_if_empty->get_tube_nr();                    
@@ -209,12 +209,12 @@ bool Command::check_if_all_tasks_finished()
             }
             break;
         }    
-        case machine_command_types::release_content:
+        case modul_command_types::release_content:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             { 
                 std::shared_ptr<ReleaseContent> release = std::static_pointer_cast<ReleaseContent>(this->v_tasks.at(i));
-                if(release->get_status() == "finished")
+                if(release->get_status() == TASK_STATE_FINISHED)
                 {                    
                     JSONVar task_reply;
                     task_reply[JSON_KEY_TUBE_NR] = release->get_tube_nr();
@@ -258,7 +258,7 @@ bool Command::send_next_uart_msg()
 {
     switch(this->e_command)
     {
-        case machine_command_types::set_i2c_address:
+        case modul_command_types::set_i2c_address:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             {
@@ -275,7 +275,7 @@ bool Command::send_next_uart_msg()
             }
             break;
         }
-        case machine_command_types::health_check:
+        case modul_command_types::health_check:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             {
@@ -292,7 +292,7 @@ bool Command::send_next_uart_msg()
             }
             break;
         }
-        case machine_command_types::check_if_emtpy:
+        case modul_command_types::check_if_emtpy:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             {
@@ -309,7 +309,7 @@ bool Command::send_next_uart_msg()
             }
             break;
         }
-        case machine_command_types::release_content:
+        case modul_command_types::release_content:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             {
@@ -335,7 +335,7 @@ bool Command::set_uart_recieve_flag(std::shared_ptr<Task> cur_sender, bool error
 {
     switch(this->e_command)
     {
-        case machine_command_types::set_i2c_address:
+        case modul_command_types::set_i2c_address:
         {
             std::shared_ptr<SetI2CAddress> cur_task = std::static_pointer_cast<SetI2CAddress>(this->v_tasks.front());
             if(cur_sender == cur_task)
@@ -354,7 +354,7 @@ bool Command::set_uart_recieve_flag(std::shared_ptr<Task> cur_sender, bool error
             }
             break;
         }
-        case machine_command_types::health_check:
+        case modul_command_types::health_check:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             {
@@ -376,7 +376,7 @@ bool Command::set_uart_recieve_flag(std::shared_ptr<Task> cur_sender, bool error
             }
             break;
         }
-        case machine_command_types::check_if_emtpy:
+        case modul_command_types::check_if_emtpy:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             {
@@ -398,7 +398,7 @@ bool Command::set_uart_recieve_flag(std::shared_ptr<Task> cur_sender, bool error
             }
             break;
         }
-        case machine_command_types::release_content:
+        case modul_command_types::release_content:
         {
             for(int i = 0; i < this->v_tasks.size(); i++)
             {

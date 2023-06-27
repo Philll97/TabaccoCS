@@ -4,7 +4,7 @@
 
 CheckIfEmpty::CheckIfEmpty(uint8_t tube_nr, uint16_t stack_size, uint8_t priority, BaseType_t core_id) : Task("check_if_empty", stack_size, priority, core_id)
 {
-    this->str_status = "Task created";
+    this->str_status = TASK_STATE_CREATED;
     this->ui8_tube_nr = tube_nr;
     this->log(str_status.c_str());
 }
@@ -22,13 +22,13 @@ void CheckIfEmpty::perform_command()
 
     this->log("put tube in standby");
     this->str_status = "put_in_standby";
-    this->str_error = "no_error";
+    this->str_error = JSON_VAL_NO_ERROR;
     while(1)
     {
         if(failed_com_count == UART_MAX_RETRY)
         {
-            this->str_error = "com_failed";
-            this->str_status = "finished";
+            this->str_error = JSON_VAL_UART_ERR;
+            this->str_status = TASK_STATE_FINISHED;
             this->log("Communication error");
             return;
         }
@@ -109,7 +109,7 @@ void CheckIfEmpty::perform_command()
                     failed_com_count = 0;
                     if(this->s_cur_reply.data1 == 1) 
                     {
-                        this->str_error = "tube_empty";
+                        this->str_error = JSON_VAL_TUBE_EMPTY;
                         this->log("Tube emtpy");
                     }
                     
@@ -140,7 +140,7 @@ void CheckIfEmpty::perform_command()
                 {
                     failed_com_count = 0;
                     this->log("Finished");
-                    this->str_status = "finished";
+                    this->str_status = TASK_STATE_FINISHED;
                     return;
                 }
                 else
@@ -152,9 +152,9 @@ void CheckIfEmpty::perform_command()
     }
 }
 
-machine_command_types CheckIfEmpty::get_command()
+modul_command_types CheckIfEmpty::get_command()
 {
-    return machine_command_types::check_if_emtpy;
+    return modul_command_types::check_if_emtpy;
 }
 
 std::string CheckIfEmpty::get_status()

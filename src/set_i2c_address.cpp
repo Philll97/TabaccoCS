@@ -4,7 +4,7 @@
 
 SetI2CAddress::SetI2CAddress(uint8_t tube_nr, uint16_t stack_size, uint8_t priority, BaseType_t core_id) : Task("com_check", stack_size, priority, core_id)
 {
-    this->str_status = "Task created";
+    this->str_status = TASK_STATE_CREATED;
     this->ui8_tube_nr = tube_nr;
     this->log(str_status.c_str());
 }
@@ -20,13 +20,13 @@ void SetI2CAddress::perform_command()
     uint8_t failed_com_count = 0;
 
     this->str_status = "set_i2c_address";
-    this->str_error = "no_error";
+    this->str_error = JSON_VAL_NO_ERROR;
     while(1)
     {
         if(failed_com_count == UART_MAX_RETRY)
         {
-            this->str_error = "com_failed";
-            this->str_status = "finished";
+            this->str_error = JSON_VAL_UART_ERR;
+            this->str_status = TASK_STATE_FINISHED;
             this->log("Communication error");
             return;
         }
@@ -49,11 +49,11 @@ void SetI2CAddress::perform_command()
             {
                 case peripherie_states::ready:
                 case peripherie_states::command_understood:
-                    this->str_status = "finished";
+                    this->str_status = TASK_STATE_FINISHED;
                     return;
                 case peripherie_states::not_configured:
-                    this->str_status = "finished";
-                    this->str_error = "not_configured";
+                    this->str_status = TASK_STATE_FINISHED;
+                    this->str_error = JSON_VAL_TUBE_NOT_CONF;
                     return;
                 case peripherie_states::command_error:
                 case peripherie_states::message_error:
@@ -67,9 +67,9 @@ void SetI2CAddress::perform_command()
     }
 }
 
-machine_command_types SetI2CAddress::get_command()
+modul_command_types SetI2CAddress::get_command()
 {
-    return machine_command_types::set_i2c_address;
+    return modul_command_types::set_i2c_address;
 }
 
 std::string SetI2CAddress::get_status()

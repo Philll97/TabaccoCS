@@ -67,7 +67,7 @@ void uart::send(peripherie_command command)
     
     SerialPort.flush(); // wait Serial FIFO to be empty and then spend almost no time processing it
     SerialPort.setRxFIFOFull(UART_MSG_SIZE);
-    SerialPort.onReceive(onReceiveFunction, true);
+    SerialPort.onReceive(onReceiveFunction, false);
     
     SerialPort.write(data_out, UART_MSG_SIZE);
     timestamp = millis();

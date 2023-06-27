@@ -4,7 +4,7 @@
 
 ReleaseContent::ReleaseContent(uint8_t tube_nr, uint16_t stack_size, uint8_t priority, BaseType_t core_id) : Task("release_content", stack_size, priority, core_id)
 {
-    this->str_status = "Task created";
+    this->str_status = TASK_STATE_CREATED;
     this->ui8_tube_nr = tube_nr;
     this->log(str_status.c_str());
 }
@@ -19,17 +19,25 @@ void ReleaseContent::perform_command()
     this->s_cur_command.address = this->ui8_tube_nr + I2C_START_ADDR - 1;
     uint8_t state = 0;
     uint8_t failed_com_count = 0;
+    uint8_t motor_blocked_count = 0;
 
     this->log("put tube in standby");
     this->str_status = "check_if_ready";
-    this->str_error = "no_error";
+    this->str_error = JSON_VAL_NO_ERROR;
     while(1)
     {
         if(failed_com_count == UART_MAX_RETRY)
         {
-            this->str_error = "com_failed";
-            this->str_status = "finished";
+            this->str_error = JSON_VAL_UART_ERR;
+            this->str_status = TASK_STATE_FINISHED;
             this->log("Communication error");
+            return;
+        }
+        if(motor_blocked_count == MOTOR_BLOCKED_MAX_CNT)
+        {
+            this->str_error = JSON_VAL_MOTOR_BLOCKED;
+            this->str_status = TASK_STATE_FINISHED;
+            this->log("Motor blocked");
             return;
         }
         switch(state)
@@ -111,17 +119,20 @@ void ReleaseContent::perform_command()
                         if(this->s_cur_reply.data2 == 0) // position reset still ongoing pause for 1 Second
                         {
                             delay(500);
+                            motor_blocked_count++;
                         }
                         else
                         {
                             this->log("Tube ready -> eject product");
                             this->str_status = "eject_product";
+                            delay(500);
+                            motor_blocked_count = 0;
                             state = 10;
                         }
                     }
                     else
                     {
-                        this->str_error = "tube_empty";
+                        this->str_error = JSON_VAL_TUBE_EMPTY;
                         this->log("Tube empty");
                         state = 30;
                     }
@@ -206,6 +217,7 @@ void ReleaseContent::perform_command()
                     if(this->s_cur_reply.data2 == 0) // position reset still ongoing pause for 0.5 Second
                     {
                         delay(500);
+                        motor_blocked_count++;
                     }
                     else
                     {
@@ -292,9 +304,10 @@ void ReleaseContent::perform_command()
                     failed_com_count = 0;
                     if(this->s_cur_reply.data1 == 1) 
                     {
-                        this->str_error = "tube_emptied";
+                        this->str_error = JSON_VAL_TUBE_EMPTIED;
                         this->log("Tube emptied");
                     }
+                    delay(500);
                     
                     state = 30;
                 }
@@ -323,7 +336,7 @@ void ReleaseContent::perform_command()
                 {
                     failed_com_count = 0;
                     this->log("Finished");
-                    this->str_status = "finished";
+                    this->str_status = TASK_STATE_FINISHED;
                     return;
                 }
                 else
@@ -335,9 +348,9 @@ void ReleaseContent::perform_command()
     }
 }
 
-machine_command_types ReleaseContent::get_command()
+modul_command_types ReleaseContent::get_command()
 {
-    return machine_command_types::release_content;
+    return modul_command_types::release_content;
 }
 
 std::string ReleaseContent::get_status()

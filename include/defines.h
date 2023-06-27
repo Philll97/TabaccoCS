@@ -12,6 +12,7 @@
 #define TUBE_CNT        39
 #define I2C_START_ADDR  0x20
 #define I2C_CONFIG_ADDR 0x11
+#define MOTOR_BLOCKED_MAX_CNT 5
 
 // UART Settings
 #define UART_MSG_SIZE   6
@@ -45,15 +46,21 @@
 #define JSON_KEY_ERROR              "error"
 #define JSON_VAL_NO_ERROR           "no_error"
 #define JSON_VAL_TUBE_NR_WRONG      "wrong_tube_number"
+#define JSON_VAL_TUBE_NOT_CONF      "not_configured"
 #define JSON_VAL_COMMAND_ERR        "invalid_command"
 #define JSON_VAL_UART_ERR           "uart_communication_failed"
 #define JSON_VAL_MQTT_PARSE_FAILED  "mqtt_message_could_not_be_parsed"
 #define JSON_VAL_TUBE_EMPTY         "tube_empty"
 #define JSON_VAL_TUBE_EMPTIED       "tube_emptied"
+#define JSON_VAL_MOTOR_BLOCKED      "motor_blocked"
 
 #define JSON_KEY_FAILED_COUNT       "failed_count"
 #define JSON_KEY_FAILED_TUBES       "failed_tubes"
 #define JSON_KEY_RELEASE_SUCCESS    "success"
+
+// Tasks
+#define TASK_STATE_CREATED "task_created"
+#define TASK_STATE_FINISHED "finished"
 
 // Ethernet Settings
 #define ETH_MACADDR     0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
@@ -64,7 +71,7 @@
 #define ETH_DNS       192,168,0,1
 #define ETH_GW        192,168,0,1
 
-// Communication States
+// Communication
 enum class communication_states
 {
     idle,
@@ -72,52 +79,9 @@ enum class communication_states
     new_msg,
     error
 };
-// Machine Tasks
-enum class machine_tasks
-{
-    idle,
-    health_check,       //check communication
-    check_if_emtpy,     //check if tube has product
-    release_content,    //eject a product
-    set_i2c_address,     //set i2c address while configuring
-    error
-};
 
-enum class check_if_empty_sub_tasks
-{
-    none,
-    set_output_A,
-    get_digital_state,
-    reset_output_A,
-};
-
-enum class release_content_sub_tasks //for release content
-{
-    none,
-    put_tube_in_standby,
-    check_if_ready,
-    eject_product,
-    check_if_finished,
-    reset_pusher_position,
-    check_if_empty,
-    reset_output_A
-};
-
-enum class release_content_sub_sub_tasks
-{
-    none,
-    set_output_A,
-    set_output_B,
-    reset_output_A,
-    reset_output_B
-};
-
-extern machine_tasks current_task;
-extern release_content_sub_tasks release_content_sub_task; 
-extern release_content_sub_sub_tasks release_content_sub_sub_task; 
-
-// Machine Commands
-enum class machine_command_types
+// Modul
+enum class modul_command_types
 {
     health_check,       //check communication
     check_if_emtpy,     //check if tube has product
@@ -125,50 +89,8 @@ enum class machine_command_types
     set_i2c_address     //set i2c address while configuring
 };
 
-struct machine_command
-{ 
-    String command_type;
-    uint8_t tube_nr;
-    String ackn;
-};
 
-/* struct machine_reply_health_check
-{
-    String command_type;
-    bool success;
-    JSONVar tube_nrs; //if failed send tube nr which failed
-    String ackn;
-};
-
-struct machine_reply_release_content
-{
-    String command_type;
-    uint8_t tube_nr;
-    bool success;
-    String error;
-    String ackn;
-};
-
-struct machine_reply_empty
-{
-    String command_type;
-    uint8_t tube_nr;
-    bool empty;
-    String error;
-    String ackn;
-};
-
-struct machine_reply_set_i2c_address
-{
-    String command_type;
-    uint8_t tube_nr;
-    bool success;
-    String error;
-    String ackn;
-}; */
-
-
-// Peripherie Commands
+// Peripherie
 enum class peripherie_command_types
 {
     check_communication     = 1,

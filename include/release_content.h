@@ -20,7 +20,7 @@ class ReleaseContent : public Task
         ~ReleaseContent();
 
         void perform_command();
-        machine_command_types get_command();
+        modul_command_types get_command();
         std::string get_status();
         std::string get_error();
         uint8_t get_tube_nr();

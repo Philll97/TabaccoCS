@@ -15,7 +15,7 @@
 class Command
 {
     private:
-        machine_command_types e_command;
+        modul_command_types e_command;
         std::vector<std::shared_ptr<Task>> v_tasks;
         std::vector<uint8_t> waiting_tube_nrs;
         JSONVar js_mqtt_command;
@@ -24,7 +24,7 @@ class Command
         void setup_tasks();
 
     public:
-        Command(machine_command_types command, JSONVar mqtt_msg);
+        Command(modul_command_types command, JSONVar mqtt_msg);
         ~Command();
 
         bool check_if_all_tasks_finished();
