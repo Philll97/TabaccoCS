@@ -3,13 +3,27 @@
 ## Health Check
 ### Command
 {
-    "command":"health_check", 
-    "ackn":"request"
+    "sender": "tabacco/control",
+    "receiver": "tabacco/1",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "request",
+    "topic": "health_check",
+    "command": "execute",
+    "data": ""
 }
 ### Response
 {
-    "command":"health_check",
-    "failes_tubes": [
+    "sender": "tabacco/1",
+    "receiver": "tabacco/control",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "acknowledged",
+    "topic": "health_check",
+    "command": "executed",
+    "data": [
         {
             "tube_nr": 0,
             "error": "com_failed"
@@ -18,21 +32,34 @@
             "tube_nr": 1,
             "error": "not_configured"
         }
-    ],
-    "ackn":"acknowledge"
+    ]
 }
 
 ## Check if empty
 ### Command
 {
-    "command":"check_if_empty", 
-    "tube_nrs": [0,1], // tubes nummeriert von 1 - 39 für das Teststeup
-    "ackn":"request"
+
+    "sender": "tabacco/control",
+    "receiver": "tabacco/1",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "request",
+    "topic": "check_if_empty",
+    "command": "execute",
+    "data": ""
 }
 ### Response
 {
-    "command":"check_if_empty",
-    "tube_nrs": [
+    "sender": "tabacco/1",
+    "receiver": "tabacco/control",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "acknowledged",
+    "topic": "check_if_empty",
+    "command": "executed",
+    "data": [
         {
             "tube_nr": 0,
             "error": "no_error"
@@ -46,57 +73,97 @@
             "error": "communication_failed"
         }
 
-    ],
-    "ackn":"acknowledge"
+    ]
 }
 
 ## release content
 ### Command
 {
-    "command":"release_content", 
-    "tube_nr": [0,1], // tubes nummeriert von 1 - 39 für das Teststeup
-    "ackn":"request"
+
+    "sender": "tabacco/control",
+    "receiver": "tabacco/1",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "request",
+    "topic": "release_content",
+    "command": "execute",
+    "data": [1,2] // tubes nummeriert von 1 - 39 für das Teststeup
 }
-### Response
+### Response after each push
 {
-    "command":"release_content",
-    "tube_nrs": [
+    "sender": "tabacco/1",
+    "receiver": "tabacco/control",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "acknowledged",
+    "topic": "release_content",
+    "command": "update",
+    "data": {
+        "tube_nr": 1,
+        "success": true,
+        "error": "no_error"
+    }
+}
+### Response end
+{
+    "sender": "tabacco/1",
+    "receiver": "tabacco/control",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "acknowledged",
+    "topic": "release_content",
+    "command": "executed",
+    "data": [
         {
-            "tube_nr": 0,
+            "tube_nr": 1,
             "success": true,
             "error": "no_error"
         },
         {
-            "tube_nr": 1,
+            "tube_nr": 2,
             "success": true,
             "error": "tube_emptied"
         },
         {
-            "tube_nr": 2,
+            "tube_nr": 3,
             "success": false,
             "error": "tube_empty"
         },
         {
-            "tube_nr": 3,
+            "tube_nr": 4,
             "success": false,
             "error": "communication_failed"
         }
 
-    ],
-    "ackn":"acknowledge"
+    ]
 }
 
 ## I2C adresse setzen
 ### Command
 {
-    "command":"set_i2c_address", 
-    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
-    "ackn":"request"
+    "sender": "tabacco/control",
+    "receiver": "tabacco/1",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "request",
+    "topic": "set_i2c_address",
+    "command": "execute",
+    "data": 1 // tubes nummeriert von 1 - 39 für das Teststeup
 }
 ### Response
 {
-    "command":"set_i2c_address",
-    "tube_nr": 0, // tubes nummeriert von 1 - 39 für das Teststeup
+    "sender": "tabacco/1",
+    "receiver": "tabacco/control",
+    "device_nr": 1,
+    "device_type": 4,
+    "message_id": 1,
+    "ackn": "acknowledged",
+    "topic": "check_if_empty",
+    "command": "executed",
     "error":"no error", // Fehlerbeschreibung
-    "ackn":"acknowledge"
+    "data": 1
 }

@@ -39,7 +39,6 @@ void Task::stop()
     if (h_handle == nullptr) return;
 	::vTaskDelete(h_handle);
 	h_handle = nullptr;
-    this->log("Task deleted");
 }
 
 xTaskHandle Task::get_handle()

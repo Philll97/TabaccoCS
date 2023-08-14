@@ -49,6 +49,12 @@ void onReceiveFunction(void) {
     else
     {
         Serial.println("Communication Error: Wrong message size");
+        while(uart::SerialPort.available())
+        {
+            uart::SerialPort.read();
+            uart::timestamp = millis();
+            delay(10);
+        }
         uart::state = communication_states::error;
     }
 
@@ -64,6 +70,8 @@ void uart::send(peripherie_command command)
     data_out[3] = command.data2;
     data_out[4] = command.data3;
     data_out[5] = data_out[0] + data_out[1] + data_out[2] + data_out[3] + data_out[4];
+
+    delay(10);
     
     SerialPort.flush(); // wait Serial FIFO to be empty and then spend almost no time processing it
     SerialPort.setRxFIFOFull(UART_MSG_SIZE);

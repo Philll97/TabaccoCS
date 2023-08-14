@@ -60,51 +60,64 @@ void loop()
     Serial.println("Mqtt message recieved");
     if(mqtt::message.hasPropertyEqual(JSON_KEY_ACKN, JSON_VAL_REQ))
     {
-      if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_SET_I2C_ADDRESS))
+      if(mqtt::message.hasPropertyEqual(JSON_KEY_TOPIC, JSON_VAL_SET_I2C_ADDRESS))
       {
         Serial.println("Command: set I2C address");
-        if(mqtt::message.hasOwnProperty(JSON_KEY_TUBE_NR))
-        {
-          mqtt::send_acknowledge();
-          
+        if(mqtt::message.hasOwnProperty(JSON_KEY_DATA))
+        {          
           Command new_command = Command(modul_command_types::set_i2c_address, mqtt::message);
           v_commands.push_back(new_command);
         }
+        else
+        {
+          Serial.print("Command Error: ");
+          Serial.println(mqtt::message[JSON_KEY_TOPIC]);
+          mqtt::reply = JSON.parse("");
+          mqtt::reply = nullptr;
+          mqtt::reply = mqtt::message;
+          mqtt::reply[JSON_KEY_ERROR] = JSON_VAL_COMMAND_ERR;
+          mqtt::reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
+          mqtt::send_reply();
+        }
       }
-      else if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_HEALTH_CHECK))
+      else if(mqtt::message.hasPropertyEqual(JSON_KEY_TOPIC, JSON_VAL_HEALTH_CHECK))
       {
         Serial.println("Command: health check");
-        mqtt::send_acknowledge();
-        
+
         Command new_command = Command(modul_command_types::health_check, mqtt::message);
         v_commands.push_back(new_command);
       }
-      else if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_CHECK_IF_EMPTY))
+      else if(mqtt::message.hasPropertyEqual(JSON_KEY_TOPIC, JSON_VAL_CHECK_IF_EMPTY))
       {
         Serial.println("Command: check if empty");
-        if(mqtt::message.hasOwnProperty(JSON_KEY_TUBE_NRS))
-        {
-          mqtt::send_acknowledge();
 
-          Command new_command = Command(modul_command_types::check_if_emtpy, mqtt::message);
-          v_commands.push_back(new_command);
-        }
+        Command new_command = Command(modul_command_types::check_if_emtpy, mqtt::message);
+        v_commands.push_back(new_command);
       }
-      else if(mqtt::message.hasPropertyEqual(JSON_KEY_COMMAND, JSON_VAL_RELEASE_CONTENT))
+      else if(mqtt::message.hasPropertyEqual(JSON_KEY_TOPIC, JSON_VAL_RELEASE_CONTENT))
       {
         Serial.println("Command: release content");
-        if(mqtt::message.hasOwnProperty(JSON_KEY_TUBE_NRS))
+        if(mqtt::message.hasOwnProperty(JSON_KEY_DATA))
         {
-          mqtt::send_acknowledge();
-
           Command new_command = Command(modul_command_types::release_content, mqtt::message);
           v_commands.push_back(new_command);
+        }
+        else
+        {
+          Serial.print("Command Error: ");
+          Serial.println(mqtt::message[JSON_KEY_TOPIC]);
+          mqtt::reply = JSON.parse("");
+          mqtt::reply = nullptr;
+          mqtt::reply = mqtt::message;
+          mqtt::reply[JSON_KEY_ERROR] = JSON_VAL_COMMAND_ERR;
+          mqtt::reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
+          mqtt::send_reply();
         }
       }
       else
       {
         Serial.print("Wrong command: ");
-        Serial.println(mqtt::message[JSON_KEY_COMMAND]);
+        Serial.println(mqtt::message[JSON_KEY_TOPIC]);
         mqtt::reply = JSON.parse("");
         mqtt::reply = nullptr;
         mqtt::reply = mqtt::message;
@@ -114,5 +127,9 @@ void loop()
       }
     }
     mqtt::state = communication_states::idle;
+  }
+  else
+  {
+    mqtt::check_buffer();
   }
 }

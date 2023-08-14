@@ -9,6 +9,11 @@ Command::Command(modul_command_types command, JSONVar mqtt_msg)
 
     this->js_mqtt_reply = JSON.parse("");
     this->js_mqtt_reply = nullptr;
+    this->js_mqtt_reply[JSON_KEY_SENDER] = (const char*) mqtt_msg[JSON_KEY_RECEIVER];
+    this->js_mqtt_reply[JSON_KEY_RECEIVER] = (const char*) mqtt_msg[JSON_KEY_SENDER];
+    this->js_mqtt_reply[JSON_KEY_DEVICE_NR] = (int) mqtt_msg[JSON_KEY_DEVICE_NR];
+    this->js_mqtt_reply[JSON_KEY_DEVICE_TYPE] = (int) mqtt_msg[JSON_KEY_DEVICE_TYPE];
+    this->js_mqtt_reply[JSON_KEY_MESSAGE_ID] = (int) mqtt_msg[JSON_KEY_MESSAGE_ID];
 
     setup_tasks();
 }
@@ -22,11 +27,12 @@ void Command::setup_tasks()
     {
         case modul_command_types::set_i2c_address:
         {
-            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_HEALTH_CHECK;
-            this->js_mqtt_reply[JSON_KEY_TUBE_NR] = (uint8_t) this->js_mqtt_command[JSON_KEY_TUBE_NR];
+            this->js_mqtt_reply[JSON_KEY_TOPIC] = JSON_VAL_HEALTH_CHECK;
+            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_EXECUTED;
+            this->js_mqtt_reply[JSON_KEY_DATA] = (uint8_t) this->js_mqtt_command[JSON_KEY_DATA];
             this->js_mqtt_reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
 
-            uint8_t tube_nr = (uint8_t) this->js_mqtt_command[JSON_KEY_TUBE_NR];
+            uint8_t tube_nr = (uint8_t) this->js_mqtt_command[JSON_KEY_DATA];
             if(tube_nr > 0 && tube_nr <= TUBE_CNT)
             {
                 auto newTask = std::make_shared<SetI2CAddress>(tube_nr);
@@ -43,8 +49,9 @@ void Command::setup_tasks()
         }
         case modul_command_types::health_check:
         {
-            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_HEALTH_CHECK;
-            this->js_mqtt_reply[JSON_KEY_FAILED_TUBES] = JSON.parse("[]");
+            this->js_mqtt_reply[JSON_KEY_TOPIC] = JSON_VAL_HEALTH_CHECK;
+            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_EXECUTED;
+            this->js_mqtt_reply[JSON_KEY_DATA] = JSON.parse("[]");
             this->js_mqtt_reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
             for(int i = 1; i <= TUBE_CNT; i++)
             {
@@ -58,47 +65,29 @@ void Command::setup_tasks()
         }
         case modul_command_types::check_if_emtpy:
         {
-            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_CHECK_IF_EMPTY;
-            this->js_mqtt_reply[JSON_KEY_TUBE_NRS] = JSON.parse("[]");
+            this->js_mqtt_reply[JSON_KEY_TOPIC] = JSON_VAL_CHECK_IF_EMPTY;
+            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_EXECUTED;
+            this->js_mqtt_reply[JSON_KEY_DATA] = JSON.parse("[]");
             this->js_mqtt_reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
-            std::vector<uint8_t> started_tube_nrs;
-            JSONVar tube_nrs = this->js_mqtt_command[JSON_KEY_TUBE_NRS];
-            for (int i = 0; i < tube_nrs.length(); i++) 
-            {
-                uint8_t tube_nr = (uint8_t) tube_nrs[i];
-                if(tube_nr > 0 && tube_nr <= TUBE_CNT)
-                {   
-                    if(std::find(started_tube_nrs.begin(), started_tube_nrs.end(), tube_nr) == started_tube_nrs.end()) // ignore if a tube number is called twice
-                    {
-                        auto newTask = std::make_shared<CheckIfEmpty>(tube_nr);
-                        newTask->start();
+            JSONVar tube_nrs = this->js_mqtt_command[JSON_KEY_DATA];
+            for (int i = 1; i <= TUBE_CNT; i++) 
+            { 
+                auto newTask = std::make_shared<CheckIfEmpty>(i);
+                newTask->start();
 
-                        this->v_tasks.push_back(newTask);
-                        started_tube_nrs.push_back(tube_nr);
-                        delay(10);
-                    }
-                }
-                else
-                {
-                    JSONVar task_reply;
-                    task_reply[JSON_KEY_TUBE_NR] = tube_nr;                    
-                    task_reply[JSON_KEY_ERROR] = JSON_VAL_TUBE_NR_WRONG;
-
-                    if(this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length() == -1)
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][0] = task_reply;
-                    else
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length()] = task_reply;
-                }
+                this->v_tasks.push_back(newTask);
+                delay(10);
             }
             break;
         }
         case modul_command_types::release_content:
         {
-            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_RELEASE_CONTENT;
-            this->js_mqtt_reply[JSON_KEY_TUBE_NRS] = JSON.parse("[]");
+            this->js_mqtt_reply[JSON_KEY_TOPIC] = JSON_VAL_RELEASE_CONTENT;
+            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_EXECUTED;
+            this->js_mqtt_reply[JSON_KEY_DATA] = JSON.parse("[]");
             this->js_mqtt_reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
             std::vector<uint8_t> started_tube_nrs;
-            JSONVar tube_nrs = this->js_mqtt_command[JSON_KEY_TUBE_NRS];
+            JSONVar tube_nrs = this->js_mqtt_command[JSON_KEY_DATA];
             for (int i = 0; i < tube_nrs.length(); i++) 
             {
                 uint8_t tube_nr = (uint8_t) tube_nrs[i];
@@ -122,13 +111,13 @@ void Command::setup_tasks()
                 {
                     JSONVar task_reply;
                     task_reply[JSON_KEY_TUBE_NR] = tube_nr;             
-                    task_reply[JSON_KEY_RELEASE_SUCCESS] = false;       
+                    task_reply[JSON_KEY_RELEASE_STATE] = "error";       
                     task_reply[JSON_KEY_ERROR] = JSON_VAL_TUBE_NR_WRONG;
 
-                    if(this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length() == -1)
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][0] = task_reply;
+                    if(this->js_mqtt_reply[JSON_KEY_DATA].length() == -1)
+                        this->js_mqtt_reply[JSON_KEY_DATA][0] = task_reply;
                     else
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length()] = task_reply;
+                        this->js_mqtt_reply[JSON_KEY_DATA][this->js_mqtt_reply[JSON_KEY_DATA].length()] = task_reply;
                 }
 
             }
@@ -165,14 +154,14 @@ bool Command::check_if_all_tasks_finished()
                 {    
                     if(com_check->get_error() != JSON_VAL_NO_ERROR)
                     {                
-                        JSONVar task_reply;
-                        task_reply[JSON_KEY_TUBE_NR] = com_check->get_tube_nr();                        
-                        task_reply[JSON_KEY_ERROR] = com_check->get_error().c_str();
+                        JSONVar task_data;
+                        task_data[JSON_KEY_TUBE_NR] = com_check->get_tube_nr();                        
+                        task_data[JSON_KEY_ERROR] = com_check->get_error().c_str();
 
-                        if(this->js_mqtt_reply[JSON_KEY_FAILED_TUBES].length() == -1)
-                            this->js_mqtt_reply[JSON_KEY_FAILED_TUBES][0] = task_reply;
+                        if(this->js_mqtt_reply[JSON_KEY_DATA].length() == -1)
+                            this->js_mqtt_reply[JSON_KEY_DATA][0] = task_data;
                         else
-                            this->js_mqtt_reply[JSON_KEY_FAILED_TUBES][this->js_mqtt_reply[JSON_KEY_FAILED_TUBES].length()] = task_reply;
+                            this->js_mqtt_reply[JSON_KEY_DATA][this->js_mqtt_reply[JSON_KEY_DATA].length()] = task_data;
                     }
 
                     this->v_tasks.at(i) = nullptr;
@@ -191,14 +180,17 @@ bool Command::check_if_all_tasks_finished()
                 std::shared_ptr<CheckIfEmpty> check_if_empty = std::static_pointer_cast<CheckIfEmpty>(this->v_tasks.at(i));
                 if(check_if_empty->get_status() == TASK_STATE_FINISHED)
                 {                    
-                    JSONVar task_reply;
-                    task_reply[JSON_KEY_TUBE_NR] = check_if_empty->get_tube_nr();                    
-                    task_reply[JSON_KEY_ERROR] = check_if_empty->get_error().c_str();
+                    if(check_if_empty->get_error() != JSON_VAL_NO_ERROR)
+                    {
+                        JSONVar task_data;
+                        task_data[JSON_KEY_TUBE_NR] = check_if_empty->get_tube_nr();                    
+                        task_data[JSON_KEY_ERROR] = check_if_empty->get_error().c_str();
 
-                    if(this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length() == -1)
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][0] = task_reply;
-                    else
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length()] = task_reply;
+                        if(this->js_mqtt_reply[JSON_KEY_DATA].length() == -1)
+                            this->js_mqtt_reply[JSON_KEY_DATA][0] = task_data;
+                        else
+                            this->js_mqtt_reply[JSON_KEY_DATA][this->js_mqtt_reply[JSON_KEY_DATA].length()] = task_data;
+                    }
 
                     this->v_tasks.at(i) = nullptr;
                     this->v_tasks.erase(this->v_tasks.begin() + i);
@@ -217,18 +209,24 @@ bool Command::check_if_all_tasks_finished()
                 if(release->get_status() == TASK_STATE_FINISHED)
                 {                    
                     JSONVar task_reply;
-                    task_reply[JSON_KEY_TUBE_NR] = release->get_tube_nr();
+                    task_reply[JSON_KEY_TOPIC] = JSON_VAL_RELEASE_CONTENT;
+                    task_reply[JSON_KEY_COMMAND] = JSON_VAL_PRODUCT_RELEASED;
+                    task_reply[JSON_KEY_ACKN] = JSON_VAL_REQ;
+                    JSONVar task_data;
+                    task_data[JSON_KEY_TUBE_NR] = release->get_tube_nr();
                     if(release->get_error() == JSON_VAL_NO_ERROR || release->get_error() == JSON_VAL_TUBE_EMPTIED)
-                        task_reply[JSON_KEY_RELEASE_SUCCESS] = true;
+                        task_data[JSON_KEY_RELEASE_STATE] = "success";
                     else
-                        task_reply[JSON_KEY_RELEASE_SUCCESS] = false;
+                        task_data[JSON_KEY_RELEASE_STATE] = "error";
                     
-                    task_reply[JSON_KEY_ERROR] = release->get_error().c_str();
+                    task_data[JSON_KEY_ERROR] = release->get_error().c_str();
 
-                    if(this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length() == -1)
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][0] = task_reply;
+                    task_reply[JSON_KEY_DATA] = task_data;
+
+                    if(this->js_mqtt_reply[JSON_KEY_DATA].length() == -1)
+                        this->js_mqtt_reply[JSON_KEY_DATA][0] = task_data;
                     else
-                        this->js_mqtt_reply[JSON_KEY_TUBE_NRS][this->js_mqtt_reply[JSON_KEY_TUBE_NRS].length()] = task_reply;
+                        this->js_mqtt_reply[JSON_KEY_DATA][this->js_mqtt_reply[JSON_KEY_DATA].length()] = task_data;
 
                     if(std::find(this->waiting_tube_nrs.begin(), this->waiting_tube_nrs.end(), release->get_tube_nr()) != this->waiting_tube_nrs.end())
                     {
@@ -241,6 +239,8 @@ bool Command::check_if_all_tasks_finished()
                         delay(100);
                     }
 
+                    mqtt::send_msg(task_reply);
+                    delay(100);
                     this->v_tasks.at(i) = nullptr;
                     this->v_tasks.erase(this->v_tasks.begin() + i);
                     i--;

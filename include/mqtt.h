@@ -8,9 +8,16 @@
 #include <MQTT.h>
 #include <vector>
 #include "defines.h"
+#include "timer.h"
 
 namespace mqtt
 {
+    struct BufferElement
+    {
+        JSONVar request;
+        long timestamp;
+    };
+
     extern MQTTClient client;
     extern communication_states state;
     extern JSONVar message;
@@ -23,7 +30,10 @@ namespace mqtt
     void send(machine_reply_release_content reply);
     void send(machine_reply_set_i2c_address reply); */
     void send_reply();
+    void send_msg(JSONVar msg);
     void send_acknowledge();
+
+    void check_buffer();
 }
 
 #endif

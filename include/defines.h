@@ -6,42 +6,61 @@
 #include <Arduino_JSON.h>
 
 // General Settings
-#define MACHINE_TYPE    "TABACCO"
-#define MACHINE_ID      1
+#define DEVICE_TYPE    4
+#define DEVICE_NR      1
 
-#define TUBE_CNT        39
+#define TUBE_CNT        32
+#define MOTOR_BLOCKED_MAX_CNT 5
+
+// I2C Settings
 #define I2C_START_ADDR  0x20
 #define I2C_CONFIG_ADDR 0x11
-#define MOTOR_BLOCKED_MAX_CNT 5
 
 // UART Settings
 #define UART_MSG_SIZE   6
-#define UART_BAUDRATE   9600
+#define UART_BAUDRATE   115200
 #define UART_CONFIG     SERIAL_8N1
 #define UART_RX_PIN     9
 #define UART_TX_PIN     10
 #define UART_RX_TIMEOUT 1
-#define UART_MAX_RETRY  2
+#define UART_MAX_RETRY  3
 
 // MQTT Settings
-#define MQTT_BROKER     "192.168.0.154"
-#define MQTT_PORT       1883
-#define MQTT_SUB_TOPIC  "tabacco/input"
-#define MQTT_PUB_TOPIC  "tabacco/output"
+#define MQTT_BROKER         "192.168.0.154"
+#define MQTT_PORT           1883
+#define MQTT_SUB_TOPIC      "tobacco/1"
+#define MQTT_PUB_TOPIC      "tobacco/control"
+#define MQTT_CLIENT_ID      "tobacco1"
+#define MQTT_USERNAME       "tobacco"
+#define MQTT_PASSWORD       "tobacco"
+#define MQTT_REQ_TIMEOUT    10
 
 // MQTT Message Keys and Values
-#define JSON_KEY_COMMAND            "command"
+#define JSON_KEY_SENDER             "sender"
+#define JSON_KEY_RECEIVER           "receiver"
+#define JSON_KEY_DEVICE_NR          "device_nr"
+#define JSON_KEY_DEVICE_TYPE        "device_type"
+#define JSON_KEY_MESSAGE_ID         "message_id"
+
+#define JSON_KEY_TOPIC              "topic"
 #define JSON_VAL_HEALTH_CHECK       "health_check"
 #define JSON_VAL_CHECK_IF_EMPTY     "check_if_empty"
 #define JSON_VAL_RELEASE_CONTENT    "release_content"
 #define JSON_VAL_SET_I2C_ADDRESS    "set_i2c_address"
+#define JSON_VAL_RELEASE_FINISHED   "release_finished"
 
-#define JSON_KEY_TUBE_NR            "tube_nr"
-#define JSON_KEY_TUBE_NRS           "tube_nrs"
+#define JSON_KEY_COMMAND            "command"
+#define JSON_VAL_EXECUTE            "execute"
+#define JSON_VAL_EXECUTED           "executed"
+#define JSON_VAL_UPDATE             "update"
+#define JSON_VAL_PRODUCT_RELEASED   "product_released"
+
+#define JSON_KEY_DATA               "data"
 
 #define JSON_KEY_ACKN               "ackn"
 #define JSON_VAL_REQ                "request"
 #define JSON_VAL_ACKN               "acknowledged"
+#define JSON_VAL_INFO               "info"
 
 #define JSON_KEY_ERROR              "error"
 #define JSON_VAL_NO_ERROR           "no_error"
@@ -54,9 +73,8 @@
 #define JSON_VAL_TUBE_EMPTIED       "tube_emptied"
 #define JSON_VAL_MOTOR_BLOCKED      "motor_blocked"
 
-#define JSON_KEY_FAILED_COUNT       "failed_count"
-#define JSON_KEY_FAILED_TUBES       "failed_tubes"
-#define JSON_KEY_RELEASE_SUCCESS    "success"
+#define JSON_KEY_TUBE_NR            "tube_nr"
+#define JSON_KEY_RELEASE_STATE      "state"
 
 // Tasks
 #define TASK_STATE_CREATED "task_created"
