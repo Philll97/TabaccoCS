@@ -87,7 +87,7 @@
     "message_id": 1,
     "ackn": "request",
     "topic": "release_content",
-    "command": "execute",
+    "command": "start",
     "data": [1,2] // tubes nummeriert von 1 - 39 für das Teststeup
 }
 ### Response after each push
@@ -97,9 +97,9 @@
     "device_nr": 1,
     "device_type": 4,
     "message_id": 1,
-    "ackn": "acknowledged",
+    "ackn": "request",
     "topic": "release_content",
-    "command": "update",
+    "command": "product_released",
     "data": {
         "tube_nr": 1,
         "success": true,
@@ -115,7 +115,7 @@
     "message_id": 1,
     "ackn": "acknowledged",
     "topic": "release_content",
-    "command": "executed",
+    "command": "finished",
     "data": [
         {
             "tube_nr": 1,

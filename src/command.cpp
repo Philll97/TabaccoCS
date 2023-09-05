@@ -27,7 +27,7 @@ void Command::setup_tasks()
     {
         case modul_command_types::set_i2c_address:
         {
-            this->js_mqtt_reply[JSON_KEY_TOPIC] = JSON_VAL_HEALTH_CHECK;
+            this->js_mqtt_reply[JSON_KEY_TOPIC] = JSON_VAL_SET_I2C_ADDRESS;
             this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_EXECUTED;
             this->js_mqtt_reply[JSON_KEY_DATA] = (uint8_t) this->js_mqtt_command[JSON_KEY_DATA];
             this->js_mqtt_reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
@@ -83,7 +83,7 @@ void Command::setup_tasks()
         case modul_command_types::release_content:
         {
             this->js_mqtt_reply[JSON_KEY_TOPIC] = JSON_VAL_RELEASE_CONTENT;
-            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_EXECUTED;
+            this->js_mqtt_reply[JSON_KEY_COMMAND] = JSON_VAL_FINISHED;
             this->js_mqtt_reply[JSON_KEY_DATA] = JSON.parse("[]");
             this->js_mqtt_reply[JSON_KEY_ACKN] = JSON_VAL_ACKN;
             std::vector<uint8_t> started_tube_nrs;

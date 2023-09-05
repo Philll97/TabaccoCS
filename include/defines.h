@@ -26,7 +26,7 @@
 #define UART_MAX_RETRY  3
 
 // MQTT Settings
-#define MQTT_BROKER         "192.168.0.154"
+#define MQTT_BROKER         "192.168.0.116"
 #define MQTT_PORT           1883
 #define MQTT_SUB_TOPIC      "tobacco/1"
 #define MQTT_PUB_TOPIC      "tobacco/control"
@@ -54,6 +54,7 @@
 #define JSON_VAL_EXECUTED           "executed"
 #define JSON_VAL_UPDATE             "update"
 #define JSON_VAL_PRODUCT_RELEASED   "product_released"
+#define JSON_VAL_FINISHED           "finished"
 
 #define JSON_KEY_DATA               "data"
 
